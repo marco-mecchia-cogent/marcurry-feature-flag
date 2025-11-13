@@ -1,15 +1,8 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
-import { Switch } from '@/components/ui/switch';
-import { Save, Trash2 } from 'lucide-react';
-import { GatesEditor } from '@/components/gates-editor';
 import { getFeatureFlagById, getProductById, getEnvironmentById } from '@/lib/apiHandlers';
-import { deleteFeature, updateFeature } from '@/app/actions/featureActions';
+import { EditFeatureForm } from '@/components/edit-feature-form';
 
 export default async function FeatureDetailPage({ params }: { params: Promise<{ featureId: string }> }) {
   const { featureId } = await params;
@@ -53,41 +46,7 @@ export default async function FeatureDetailPage({ params }: { params: Promise<{ 
           <CardTitle>Edit Feature</CardTitle>
         </CardHeader>
         <CardContent>
-          <form action={updateFeature} className="max-w-xl space-y-4">
-            <input type="hidden" name="id" value={feature.id} />
-
-            <div className="space-y-2">
-              <Label htmlFor="label">Label</Label>
-              <Input id="label" name="label" defaultValue={feature.label} required />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea id="description" name="description" defaultValue={feature.description ?? ''} />
-            </div>
-
-            <div className="flex items-center justify-between">
-              <Label htmlFor="enabled">Enabled</Label>
-              <Switch id="enabled" name="enabled" defaultChecked={feature.enabled} />
-            </div>
-
-            <GatesEditor initialGates={feature.gates || []} />
-
-            <Button type="submit"><Save className="mr-1 h-4 w-4" />Save</Button>
-          </form>
-
-          <div className="mt-4">
-            <form
-              action={async () => {
-                'use server';
-                await deleteFeature(feature.id);
-              }}
-            >
-              <Button type="submit" variant="destructive">
-                <Trash2 className="mr-1 h-4 w-4" />Delete Feature
-              </Button>
-            </form>
-          </div>
+          <EditFeatureForm feature={feature} />
         </CardContent>
       </Card>
     </div>

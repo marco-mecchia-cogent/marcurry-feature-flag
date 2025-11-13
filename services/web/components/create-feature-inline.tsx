@@ -18,16 +18,20 @@ import { Textarea } from '@/components/ui/textarea';
 import { Plus } from 'lucide-react';
 import { GatesEditor } from '@/components/gates-editor';
 import { createFeature } from '@/app/actions/featureActions';
+import { useToast } from '@/components/ui/toast';
 
 export function CreateFeatureInline(props: { productId?: string; envId?: string }) {
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [enabled, setEnabled] = useState(true);
+  const { showToast } = useToast();
 
   async function action(formData: FormData) {
     setSubmitting(true);
     try {
       await createFeature(formData);
       setOpen(false);
+      showToast('Feature created successfully');
     } finally {
       setSubmitting(false);
     }
@@ -62,10 +66,10 @@ export function CreateFeatureInline(props: { productId?: string; envId?: string 
 
           <div className="flex items-center justify-between">
             <Label htmlFor="enabled">Enabled</Label>
-            <Switch id="enabled" name="enabled" defaultChecked />
+            <Switch id="enabled" name="enabled" checked={enabled} onCheckedChange={setEnabled} />
           </div>
 
-          <GatesEditor initialGates={[]} />
+          {enabled && <GatesEditor initialGates={[]} />}
 
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => setOpen(false)} disabled={submitting}>

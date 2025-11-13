@@ -16,16 +16,19 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus } from 'lucide-react';
 import { createProductAction } from '@/app/actions/productActions';
+import { useToast } from '@/components/ui/toast';
 
 export function CreateProductInline() {
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const { showToast } = useToast();
 
   async function action(formData: FormData) {
     setSubmitting(true);
     try {
       await createProductAction(formData);
       setOpen(false);
+      showToast('Product created successfully');
     } finally {
       setSubmitting(false);
     }

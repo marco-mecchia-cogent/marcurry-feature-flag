@@ -16,16 +16,19 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Plus } from 'lucide-react';
 import { createEnvironmentAction } from '@/app/actions/environmentActions';
+import { useToast } from '@/components/ui/toast';
 
 export function CreateEnvironmentInline({ productId }: { productId: string }) {
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const { showToast } = useToast();
 
   async function action(formData: FormData) {
     setSubmitting(true);
     try {
       await createEnvironmentAction(formData);
       setOpen(false);
+      showToast('Environment created successfully');
     } finally {
       setSubmitting(false);
     }

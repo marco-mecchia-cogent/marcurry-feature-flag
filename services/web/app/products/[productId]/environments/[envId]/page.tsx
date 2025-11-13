@@ -1,15 +1,10 @@
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
-import { Save, Trash2 } from 'lucide-react';
 import { FeaturesTable } from '@/components/feature-usage-table';
 import { CreateFeatureInline } from '@/components/create-feature-inline';
 import { getEnvironmentById, getProductById, listFeatureFlags } from '@/lib/apiHandlers';
-import { deleteEnvironmentAction, updateEnvironmentAction } from '@/app/actions/environmentActions';
+import { EditEnvironmentForm } from '@/components/edit-environment-form';
 
 export default async function EnvironmentDetailPage({ params }: { params: Promise<{ productId: string; envId: string }> }) {
   const { productId, envId } = await params;
@@ -41,30 +36,7 @@ export default async function EnvironmentDetailPage({ params }: { params: Promis
           <CardTitle>Edit Environment</CardTitle>
         </CardHeader>
         <CardContent>
-          <form action={updateEnvironmentAction} className="max-w-xl space-y-4">
-            <input type="hidden" name="id" value={environment.id} />
-            <div className="space-y-2">
-              <Label htmlFor="name">Name</Label>
-              <Input id="name" name="name" defaultValue={environment.name} required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea id="description" name="description" defaultValue={environment.description ?? ''} />
-            </div>
-            <Button type="submit"><Save className="mr-1 h-4 w-4" />Save</Button>
-          </form>
-          <div className="mt-4">
-            <form
-              action={async () => {
-                'use server';
-                await deleteEnvironmentAction(environment.id);
-              }}
-            >
-              <Button type="submit" variant="destructive">
-                <Trash2 className="mr-1 h-4 w-4" />Delete Environment
-              </Button>
-            </form>
-          </div>
+          <EditEnvironmentForm environment={environment} />
         </CardContent>
       </Card>
 

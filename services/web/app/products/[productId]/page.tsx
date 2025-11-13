@@ -1,14 +1,9 @@
 import { notFound } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Button } from '@/components/ui/button';
-import { Save, Trash2 } from 'lucide-react';
 import { EnvironmentsTable, type EnvironmentRow } from '@/components/environments-table';
 import { CreateEnvironmentInline } from '@/components/create-environment-inline';
 import { getProductById, listEnvironments, listFeatureFlags } from '@/lib/apiHandlers';
-import { deleteProductAction, updateProductAction } from '@/app/actions/productActions';
+import { EditProductForm } from '@/components/edit-product-form';
 import Link from 'next/link';
 
 export default async function ProductDetailPage({ params }: { params: Promise<{ productId: string }> }) {
@@ -39,30 +34,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
           <CardTitle>Edit Product</CardTitle>
         </CardHeader>
         <CardContent>
-          <form action={updateProductAction} className="max-w-xl space-y-4">
-            <input type="hidden" name="id" value={product.id} />
-            <div className="space-y-2">
-              <Label htmlFor="name">Name</Label>
-              <Input id="name" name="name" defaultValue={product.name} required />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea id="description" name="description" defaultValue={product.description ?? ''} />
-            </div>
-            <Button type="submit"><Save className="mr-1 h-4 w-4" />Save</Button>
-          </form>
-          <div className="mt-4">
-            <form
-              action={async () => {
-                'use server';
-                await deleteProductAction(product.id);
-              }}
-            >
-              <Button type="submit" variant="destructive">
-                <Trash2 className="mr-1 h-4 w-4" />Delete Product
-              </Button>
-            </form>
-          </div>
+          <EditProductForm product={product} />
         </CardContent>
       </Card>
 
