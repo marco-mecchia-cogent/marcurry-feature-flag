@@ -1,6 +1,6 @@
 import type { ID, Product, Environment, FeatureFlag } from './types';
 
-export interface MemoryAdapter {
+export interface StorageAdapter {
   // Products
   createProduct(product: Omit<Product, 'id' | 'createdAt'>): Promise<Product>;
   getProduct(id: ID): Promise<Product | null>;

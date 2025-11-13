@@ -1,5 +1,5 @@
 import type { ID, Product, Environment, FeatureFlag, GateAll, GateGroups, GateUsers, Gate } from './types';
-import type { MemoryAdapter } from './memory-adapter';
+import type { StorageAdapter } from './StorageAdapter';
 
 function createId(prefix = 'id'): ID {
   return `${prefix}_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`;
@@ -9,7 +9,7 @@ function nowIso() {
   return new Date().toISOString();
 }
 
-export class InMemoryAdapter implements MemoryAdapter {
+export class InMemoryAdapter implements StorageAdapter {
   private products = new Map<ID, Product>();
   private environments = new Map<ID, Environment>();
   private flags = new Map<ID, FeatureFlag>();
