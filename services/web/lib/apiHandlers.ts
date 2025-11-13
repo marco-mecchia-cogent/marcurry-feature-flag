@@ -1,7 +1,7 @@
-import { getDb } from '@/lib/db';
+import { initializeAdapter } from '@/lib/db';
 import type { Gate } from './adapters/types';
 
-const adapter = getDb();
+const adapter = initializeAdapter();
 
 // Products
 export async function listProducts() {
