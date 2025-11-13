@@ -28,7 +28,7 @@ export function createClient(options: ClientOptions): Client {
       try {
         const flags = await fetchFromWebService('/api/enabled_flags', {
           productId: options.productId,
-          envId: options.environmentId,
+          envId: options.envId,
           actorId,
         });
         return flags.map((flag: FeatureFlag) => flag.id);
