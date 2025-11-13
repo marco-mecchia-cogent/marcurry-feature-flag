@@ -7,7 +7,7 @@ export async function GET(req: Request) {
   const url = new URL(req.url);
   const productId = url.searchParams.get('productId') ?? undefined;
   const envId = url.searchParams.get('envId') ?? undefined;
-  const flags = await adapter.listFeatureFlags(productId as any, envId as any);
+  const flags = await adapter.listFeatureFlags(productId, envId);
   return NextResponse.json(flags);
 }
 

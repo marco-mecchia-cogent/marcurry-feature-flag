@@ -6,7 +6,7 @@ const adapter = getDb();
 export async function GET(req: Request) {
   const url = new URL(req.url);
   const productId = url.searchParams.get('productId') ?? undefined;
-  const envs = await adapter.listEnvironments(productId as any);
+  const envs = await adapter.listEnvironments(productId);
   return NextResponse.json(envs);
 }
 
