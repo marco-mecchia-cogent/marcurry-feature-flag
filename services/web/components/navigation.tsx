@@ -10,7 +10,8 @@ export function Navigation(props: React.HTMLAttributes<HTMLElement>) {
   const pathname = usePathname();
   const navItems = [
     { href: '/', label: 'Home', icon: BarChart3 },
-    { href: '/features', label: 'Features', icon: Flag },
+    { href: '/products', label: 'Products', icon: Flag },
+    // { href: '/features', label: 'Features', icon: Flag },
   ];
 
   return (
