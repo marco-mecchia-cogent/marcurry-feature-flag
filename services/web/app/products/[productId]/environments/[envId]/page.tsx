@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
+import { Save, Trash2 } from 'lucide-react';
 import { FeaturesTable } from '@/components/feature-usage-table';
 import { CreateFeatureInline } from '@/components/create-feature-inline';
 import { getEnvironmentById, getProductById, listFeatureFlags } from '@/lib/apiHandlers';
@@ -50,7 +51,7 @@ export default async function EnvironmentDetailPage({ params }: { params: Promis
               <Label htmlFor="description">Description</Label>
               <Textarea id="description" name="description" defaultValue={environment.description ?? ''} />
             </div>
-            <Button type="submit">Save</Button>
+            <Button type="submit"><Save className="mr-1 h-4 w-4" />Save</Button>
           </form>
           <div className="mt-4">
             <form
@@ -60,7 +61,7 @@ export default async function EnvironmentDetailPage({ params }: { params: Promis
               }}
             >
               <Button type="submit" variant="destructive">
-                Delete Environment
+                <Trash2 className="mr-1 h-4 w-4" />Delete Environment
               </Button>
             </form>
           </div>

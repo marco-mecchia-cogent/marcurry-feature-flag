@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Pencil, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import type { FeatureFlag, Environment } from '@/lib/adapters/types';
 
@@ -63,7 +64,7 @@ export function FeaturesTable({
                     <TableCell className="text-right">
                       <div className="flex justify-end gap-2">
                         <Link href={`/features/${feature.id}`}>
-                          <Button size="sm" variant="ghost">Edit</Button>
+                          <Button size="sm" variant="ghost"><Pencil className="mr-1 h-4 w-4" />Edit</Button>
                         </Link>
                         {actions ? actions(feature) : null}
                         {allowDelete ? (
@@ -74,7 +75,7 @@ export function FeaturesTable({
                             }}
                           >
                             <Button size="sm" variant="ghost" type="submit" className="text-destructive">
-                              Delete
+                              <Trash2 className="mr-1 h-4 w-4" />Delete
                             </Button>
                           </form>
                         ) : null}

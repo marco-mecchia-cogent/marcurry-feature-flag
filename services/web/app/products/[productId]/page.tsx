@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
+import { Save, Trash2 } from 'lucide-react';
 import { EnvironmentsTable, type EnvironmentRow } from '@/components/environments-table';
 import { CreateEnvironmentInline } from '@/components/create-environment-inline';
 import { getProductById, listEnvironments, listFeatureFlags } from '@/lib/apiHandlers';
@@ -48,7 +49,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
               <Label htmlFor="description">Description</Label>
               <Textarea id="description" name="description" defaultValue={product.description ?? ''} />
             </div>
-            <Button type="submit">Save</Button>
+            <Button type="submit"><Save className="mr-1 h-4 w-4" />Save</Button>
           </form>
           <div className="mt-4">
             <form
@@ -58,7 +59,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
               }}
             >
               <Button type="submit" variant="destructive">
-                Delete Product
+                <Trash2 className="mr-1 h-4 w-4" />Delete Product
               </Button>
             </form>
           </div>

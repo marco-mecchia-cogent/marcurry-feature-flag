@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import { Flag, BarChart3 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
@@ -19,8 +20,8 @@ export function Navigation(props: React.HTMLAttributes<HTMLElement>) {
       <div className="px-4">
         <div className="flex h-16 items-center justify-between">
           <div className="flex items-center gap-8">
-            <Link href="/" className="text-lg font-semibold">
-              MarCurry
+            <Link href="/" className="flex items-center gap-2">
+              <span className="text-lg font-semibold">MarCurry</span>
             </Link>
             <div className="flex gap-1">
               {navItems.map((item) => {

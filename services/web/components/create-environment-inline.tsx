@@ -14,6 +14,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Plus } from 'lucide-react';
 import { createEnvironmentAction } from '@/app/actions/environmentActions';
 
 export function CreateEnvironmentInline({ productId }: { productId: string }) {
@@ -33,7 +34,7 @@ export function CreateEnvironmentInline({ productId }: { productId: string }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm">New Environment</Button>
+        <Button size="sm"><Plus className="mr-1 h-4 w-4" />New Environment</Button>
       </DialogTrigger>
       <DialogContent>
         <form action={action} className="space-y-4">

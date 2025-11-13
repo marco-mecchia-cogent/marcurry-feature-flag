@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
+import { Save, Trash2 } from 'lucide-react';
 import { GatesEditor } from '@/components/gates-editor';
 import { getFeatureFlagById, getProductById, getEnvironmentById } from '@/lib/apiHandlers';
 import { deleteFeature, updateFeature } from '@/app/actions/featureActions';
@@ -72,7 +73,7 @@ export default async function FeatureDetailPage({ params }: { params: Promise<{ 
 
             <GatesEditor initialGates={feature.gates || []} />
 
-            <Button type="submit">Save</Button>
+            <Button type="submit"><Save className="mr-1 h-4 w-4" />Save</Button>
           </form>
 
           <div className="mt-4">
@@ -83,7 +84,7 @@ export default async function FeatureDetailPage({ params }: { params: Promise<{ 
               }}
             >
               <Button type="submit" variant="destructive">
-                Delete Feature
+                <Trash2 className="mr-1 h-4 w-4" />Delete Feature
               </Button>
             </form>
           </div>
