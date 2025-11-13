@@ -2,7 +2,7 @@ import type { FeatureFlag } from '../../../services/web/lib/adapters/types.js';
 
 export type ClientOptions = {
   productId: string;
-  environmentId: string;
+  envId: string;
 };
 
 export type Client = {
@@ -28,7 +28,7 @@ export function createClient(options: ClientOptions): Client {
       try {
         const flags = await fetchFromWebService('/api/enabled_flags', {
           productId: options.productId,
-          environmentId: options.environmentId,
+          envId: options.environmentId,
           actorId,
         });
         return flags.map((flag: FeatureFlag) => flag.id);
