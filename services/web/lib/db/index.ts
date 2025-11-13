@@ -28,9 +28,6 @@ function initializeAdapter(): StorageAdapter {
     case 'in-memory':
       return new InMemoryAdapter();
 
-    case 'typeorm':
-      throw new Error(`Adapter not yet implemented: ${adapterType}`);
-
     default:
       console.warn(`Unknown DATABASE_ADAPTER: "${adapterType}". Defaulting to in-memory.`);
       return new InMemoryAdapter();
@@ -38,13 +35,8 @@ function initializeAdapter(): StorageAdapter {
 }
 
 export function getDb(): StorageAdapter {
-  if (process.env.NODE_ENV === 'production') {
-    const redis = new Redis(config.REDIS_URL!);
-    return new RedisAdapter(redis);
-  } else {
-    if (!global.dbAdapter) {
-      global.dbAdapter = initializeAdapter();
-    }
-    return global.dbAdapter;
+  if (!global.dbAdapter) {
+    global.dbAdapter = initializeAdapter();
   }
+  return global.dbAdapter;
 }

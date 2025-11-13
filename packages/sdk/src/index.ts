@@ -1,4 +1,4 @@
-import type { FeatureFlag } from '../../../services/web/lib/adapters/types.js';
+import { type FeatureFlag } from './../../../services/web/lib/db/types.js';
 
 export type ClientOptions = {
   productId: string;
@@ -26,7 +26,7 @@ export function createClient(options: ClientOptions): Client {
   return {
     async enabledList(actorId: string): Promise<string[]> {
       try {
-        const flags = await fetchFromWebService('/api/enabled_flags', {
+        const flags = await fetchFromWebService('/api/flags/enabled', {
           productId: options.productId,
           envId: options.envId,
           actorId,

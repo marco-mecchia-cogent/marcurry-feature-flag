@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 const serverSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
-  DATABASE_ADAPTER: z.enum(['in-memory', 'redis', 'typeorm']),
+  DATABASE_ADAPTER: z.enum(['in-memory', 'redis']).default('in-memory'),
   REDIS_URL: z.string().optional(),
 });
 
@@ -10,7 +10,20 @@ const clientSchema = z.object({
   NEXT_PUBLIC_APP_NAME: z.string(),
 });
 
-const serverParsed = serverSchema.safeParse(process.env);
+const refinedServerSchema = serverSchema.refine(
+  (data) => {
+    if (data.DATABASE_ADAPTER === 'redis' && !data.REDIS_URL) {
+      return false;
+    }
+    return true;
+  },
+  {
+    message: "REDIS_URL is required when DATABASE_ADAPTER is 'redis'",
+    path: ['REDIS_URL'],
+  }
+);
+
+const serverParsed = refinedServerSchema.safeParse(process.env);
 
 const clientParsed = clientSchema.safeParse({
   NEXT_PUBLIC_APP_NAME: process.env.NEXT_PUBLIC_APP_NAME,
