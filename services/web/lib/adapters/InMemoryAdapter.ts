@@ -125,13 +125,8 @@ export class InMemoryAdapter implements StorageAdapter {
 
   async getEnabledFlagsForActor(productId: ID, envId: ID, actorId: string) {
     const flags = await this.listFeatureFlags(productId, envId);
-    const enabled: FeatureFlag[] = [];
 
-    for (const flag of flags) {
-      if (this.flagEnabledForActor(flag, actorId)) enabled.push(flag);
-    }
-
-    return enabled;
+    return flags.filter((flag) => this.flagEnabledForActor(flag, actorId));
   }
 
   private flagEnabledForActor(flag: FeatureFlag, actorId: string) {
