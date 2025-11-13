@@ -15,7 +15,7 @@ export class InMemoryAdapter implements StorageAdapter {
   private flags = new Map<ID, FeatureFlag>();
 
   // Optional: a simple group registry to support 'groups' gates.
-  // groupId -> set of userIds
+  // groupId -> set of actorIds
   private groups = new Map<string, Set<string>>();
 
   // Products
@@ -119,18 +119,18 @@ export class InMemoryAdapter implements StorageAdapter {
   }
 
   // Evaluation
-  async getEnabledFlagsForUser(productId: ID, envId: ID, userId: string) {
+  async getEnabledFlagsForUser(productId: ID, envId: ID, actorId: string) {
     const flags = await this.listFeatureFlags(productId, envId);
     const enabled: FeatureFlag[] = [];
 
     for (const flag of flags) {
-      if (this.flagEnabledForUser(flag, userId)) enabled.push(flag);
+      if (this.flagEnabledForUser(flag, actorId)) enabled.push(flag);
     }
 
     return enabled;
   }
 
-  private flagEnabledForUser(flag: FeatureFlag, userId: string) {
+  private flagEnabledForUser(flag: FeatureFlag, actorId: string) {
     // If no gates defined -> false
     if (!flag.gates || flag.gates.length === 0) return false;
 
@@ -142,7 +142,7 @@ export class InMemoryAdapter implements StorageAdapter {
 
       if ((g as Gate).type === 'users') {
         const gu = g as GateUsers;
-        if (gu.userIds.includes(userId)) return true;
+        if (gu.actorIds.includes(actorId)) return true;
       }
 
       if ((g as Gate).type === 'groups') {
@@ -150,7 +150,7 @@ export class InMemoryAdapter implements StorageAdapter {
         // groups: check if any group contains this user
         for (const gid of gg.groupIds) {
           const members = this.groups.get(gid);
-          if (members && members.has(userId)) return true;
+          if (members && members.has(actorId)) return true;
         }
       }
     }
@@ -159,20 +159,20 @@ export class InMemoryAdapter implements StorageAdapter {
   }
 
   // Optional convenience: group management
-  async createGroup(groupId: string, userIds: string[] = []) {
-    this.groups.set(groupId, new Set(userIds));
+  async createGroup(groupId: string, actorIds: string[] = []) {
+    this.groups.set(groupId, new Set(actorIds));
   }
 
-  async addUserToGroup(groupId: string, userId: string) {
+  async addUserToGroup(groupId: string, actorId: string) {
     const s = this.groups.get(groupId) ?? new Set<string>();
-    s.add(userId);
+    s.add(actorId);
     this.groups.set(groupId, s);
   }
 
-  async removeUserFromGroup(groupId: string, userId: string) {
+  async removeUserFromGroup(groupId: string, actorId: string) {
     const s = this.groups.get(groupId);
     if (!s) return;
-    s.delete(userId);
+    s.delete(actorId);
   }
 }
 

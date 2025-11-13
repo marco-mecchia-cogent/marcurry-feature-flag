@@ -24,7 +24,7 @@ export interface GateAll {
 
 export interface GateUsers {
   type: 'users';
-  userIds: string[];
+  actorIds: string[];
 }
 
 export interface GateGroups {
