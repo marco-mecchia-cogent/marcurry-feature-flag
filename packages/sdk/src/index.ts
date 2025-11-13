@@ -1,15 +1,15 @@
 import type { FeatureFlag } from '../../../services/web/lib/adapters/types.js';
 
 export type ClientOptions = {
-  product: string;
-  environment: string;
+  productId: string;
+  environmentId: string;
 };
 
 export type Client = {
   enabledList(actorId: string): Promise<string[]>;
 };
 
-const WEB_SERVICE_URL = process.env.WEB_SERVICE_URL || 'http://localhost:3000';
+const WEB_SERVICE_URL = process.env.WEB_SERVICE_URL || 'http://localhost:3005';
 
 export function createClient(options: ClientOptions): Client {
   async function fetchFromWebService(endpoint: string, params: Record<string, string> = {}): Promise<any> {
@@ -27,8 +27,8 @@ export function createClient(options: ClientOptions): Client {
     async enabledList(actorId: string): Promise<string[]> {
       try {
         const flags = await fetchFromWebService('/api/enabled_flags', {
-          product: options.product,
-          environment: options.environment,
+          productId: options.productId,
+          environmentId: options.environmentId,
           actorId,
         });
         return flags.map((flag: FeatureFlag) => flag.id);
