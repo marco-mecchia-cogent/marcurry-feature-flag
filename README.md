@@ -1,0 +1,2 @@
+`corepack enable`
+`pnpm i`
