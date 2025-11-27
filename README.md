@@ -20,4 +20,4 @@ pnpm dev
 
 # ERD
 
-![](./erd.png)
+![](./docs/erd.png)
