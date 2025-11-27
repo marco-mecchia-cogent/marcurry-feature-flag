@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Pencil, Trash2 } from 'lucide-react';
 import Link from 'next/link';
-import type { FeatureFlag, Environment } from '@/lib/db/types';
+import type { FeatureFlag } from '@/lib/db/types';
 
 import { deleteFeature } from '@/app/actions/featureActions';
 
@@ -79,12 +79,7 @@ export function FeaturesTable({
                               await deleteFeature(feature.id);
                             }}
                           >
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              type="submit"
-                              className="text-destructive cursor-pointer no-underline hover:underline"
-                            >
+                            <Button size="sm" variant="ghost" type="submit" className="text-destructive">
                               <Trash2 className="mr-1 h-4 w-4" />
                               Delete
                             </Button>
