@@ -9,6 +9,7 @@ import { Save, Trash2 } from 'lucide-react';
 import { deleteProductAction, updateProductAction } from '@/app/actions/productActions';
 import { useToast } from '@/components/ui/toast';
 import type { Product } from '@/lib/db/types';
+import { tryCatch } from '@/lib/utils';
 
 export function EditProductForm({ product }: { product: Product }) {
   const [submitting, setSubmitting] = useState(false);
@@ -17,22 +18,28 @@ export function EditProductForm({ product }: { product: Product }) {
 
   async function handleUpdate(formData: FormData) {
     setSubmitting(true);
-    try {
-      await updateProductAction(formData);
-      showToast('Product updated successfully');
-    } finally {
-      setSubmitting(false);
+    const [error] = await tryCatch(updateProductAction(formData));
+    setSubmitting(false);
+
+    if (error) {
+      showToast('Error updating product', 'error');
+      return;
     }
+
+    showToast('Product updated successfully');
   }
 
   async function handleDelete() {
     setDeleting(true);
-    try {
-      await deleteProductAction(product.id);
-      showToast('Product deleted successfully');
-    } finally {
-      setDeleting(false);
+    const [error] = await tryCatch(deleteProductAction(product.id));
+    setDeleting(false);
+
+    if (error) {
+      showToast('Error deleting product', 'error');
+      return;
     }
+
+    showToast('Product deleted successfully');
   }
 
   return (
