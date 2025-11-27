@@ -1,4 +1,4 @@
-"use server";
+'use server';
 
 import { createEnvironment, deleteEnvironmentById, getEnvironmentById, updateEnvironmentById } from '@/lib/apiHandlers';
 import { revalidatePath } from 'next/cache';

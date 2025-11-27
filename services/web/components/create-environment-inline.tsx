@@ -37,7 +37,10 @@ export function CreateEnvironmentInline({ productId }: { productId: string }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button size="sm"><Plus className="mr-1 h-4 w-4" />New Environment</Button>
+        <Button size="sm">
+          <Plus className="mr-1 h-4 w-4" />
+          New Environment
+        </Button>
       </DialogTrigger>
       <DialogContent>
         <form action={action} className="space-y-4">

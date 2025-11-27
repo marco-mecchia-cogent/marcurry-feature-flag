@@ -11,17 +11,21 @@ export default async function FeatureDetailPage({ params }: { params: Promise<{ 
 
   const [product, environment] = await Promise.all([
     getProductById(feature.productId),
-    getEnvironmentById(feature.envId)
+    getEnvironmentById(feature.envId),
   ]);
 
   return (
     <div className="container mx-auto py-8">
-      <div className="mb-2 flex items-center gap-2 text-sm text-muted-foreground">
-        <Link href="/products" className="hover:underline">Products</Link>
+      <div className="text-muted-foreground mb-2 flex items-center gap-2 text-sm">
+        <Link href="/products" className="hover:underline">
+          Products
+        </Link>
         <span>/</span>
         {product && (
           <>
-            <Link href={`/products/${product.id}`} className="hover:underline">{product.name}</Link>
+            <Link href={`/products/${product.id}`} className="hover:underline">
+              {product.name}
+            </Link>
             <span>/</span>
           </>
         )}

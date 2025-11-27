@@ -38,8 +38,10 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
         </CardContent>
       </Card>
 
-      <div className="mb-2 flex items-center gap-2 text-sm text-muted-foreground">
-        <Link href="/products" className="hover:underline">Products</Link>
+      <div className="text-muted-foreground mb-2 flex items-center gap-2 text-sm">
+        <Link href="/products" className="hover:underline">
+          Products
+        </Link>
         <span>/</span>
         <span>{product.name}</span>
       </div>

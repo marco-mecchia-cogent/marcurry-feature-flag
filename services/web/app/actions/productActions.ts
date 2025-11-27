@@ -1,4 +1,4 @@
-"use server";
+'use server';
 
 import { createProduct, deleteProductById, updateProductById } from '@/lib/apiHandlers';
 import { revalidatePath } from 'next/cache';
