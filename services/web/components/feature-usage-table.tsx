@@ -52,7 +52,13 @@ export function FeaturesTable({
               {features.map((feature) => {
                 return (
                   <TableRow key={feature.id} className="hover:bg-muted transition-colors">
-                    <TableCell className="font-medium">{feature.label}</TableCell>
+                    <TableCell className="font-medium">
+                      <Link href={`products/${feature.productId}/environments/${feature.envId}/features/${feature.id}`}>
+                        <Button className="px-0" size="sm" variant="ghost">
+                          {feature.label}
+                        </Button>
+                      </Link>
+                    </TableCell>
                     <TableCell className="text-muted-foreground">{feature.productId ?? '-'}</TableCell>
                     <TableCell className="text-muted-foreground">{feature.envId ?? '-'}</TableCell>
                     <TableCell className="text-muted-foreground">{truncateText(feature.description, 50)}</TableCell>
