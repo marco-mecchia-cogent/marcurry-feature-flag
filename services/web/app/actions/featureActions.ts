@@ -10,7 +10,7 @@ import {
   listFeatureFlags,
   listProducts,
   updateFeatureFlagById,
-} from '@/lib/apiHandlers';
+} from '@/lib/apiHandlers/apiHandlers';
 import { revalidatePath } from 'next/cache';
 
 async function ensureDefaultProductAndEnv() {

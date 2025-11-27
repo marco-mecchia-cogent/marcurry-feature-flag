@@ -1,6 +1,11 @@
 'use server';
 
-import { createEnvironment, deleteEnvironmentById, getEnvironmentById, updateEnvironmentById } from '@/lib/apiHandlers';
+import {
+  createEnvironment,
+  deleteEnvironmentById,
+  getEnvironmentById,
+  updateEnvironmentById,
+} from '@/lib/apiHandlers/apiHandlers';
 import { revalidatePath } from 'next/cache';
 
 export async function createEnvironmentAction(formData: FormData) {

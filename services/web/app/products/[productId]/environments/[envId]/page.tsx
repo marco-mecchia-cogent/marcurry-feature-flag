@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { FeaturesTable } from '@/components/feature-usage-table';
 import { CreateFeatureInline } from '@/components/create-feature-inline';
-import { getEnvironmentById, getProductById, listFeatureFlags } from '@/lib/apiHandlers';
+import { getEnvironmentById, getProductById, listFeatureFlags } from '@/lib/apiHandlers/apiHandlers';
 import { EditEnvironmentForm } from '@/components/edit-environment-form';
 
 export default async function EnvironmentDetailPage({

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { listEnabledFlags } from '@/lib/apiHandlers';
+import { listEnabledFlags } from '@/lib/apiHandlers/apiHandlers';
 
 export async function GET(req: Request) {
   const url = new URL(req.url);

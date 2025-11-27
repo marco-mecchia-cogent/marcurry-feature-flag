@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import {
   listFeatureFlags as listFeatureFlagsHandler,
   createFeatureFlag as createFeatureFlagHandler,
-} from '@/lib/apiHandlers';
+} from '@/lib/apiHandlers/apiHandlers';
 
 export async function GET(req: Request) {
   const url = new URL(req.url);

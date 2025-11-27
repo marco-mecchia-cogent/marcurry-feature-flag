@@ -3,7 +3,7 @@ import { FeaturesTable } from '@/components/feature-usage-table';
 import { ProductSelector } from '@/components/product-selector';
 import { EnvironmentSelector } from '@/components/environment-selector';
 import { CreateProductInline } from '@/components/create-product-inline';
-import { listFeatureFlags, listProducts, listEnvironments } from '@/lib/apiHandlers';
+import { listFeatureFlags, listProducts, listEnvironments } from '@/lib/apiHandlers/apiHandlers';
 import { Suspense } from 'react';
 import { Badge } from '@/components/ui/badge';
 

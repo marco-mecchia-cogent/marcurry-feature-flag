@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { listProducts, createProduct } from '@/lib/apiHandlers';
+import { listProducts, createProduct } from '@/lib/apiHandlers/apiHandlers';
 
 export async function GET() {
   const products = await listProducts();

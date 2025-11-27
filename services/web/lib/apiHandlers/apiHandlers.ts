@@ -1,5 +1,5 @@
-import { getDb } from './db';
-import type { Gate } from './db/types';
+import { getDb } from '../db';
+import type { Gate } from '../db/types';
 
 const adapter = getDb();
 

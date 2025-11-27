@@ -2,7 +2,7 @@ import { notFound } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { EnvironmentsTable, type EnvironmentRow } from '@/components/environments-table';
 import { CreateEnvironmentInline } from '@/components/create-environment-inline';
-import { getProductById, listEnvironments, listFeatureFlags } from '@/lib/apiHandlers';
+import { getProductById, listEnvironments, listFeatureFlags } from '@/lib/apiHandlers/apiHandlers';
 import { EditProductForm } from '@/components/edit-product-form';
 import Link from 'next/link';
 

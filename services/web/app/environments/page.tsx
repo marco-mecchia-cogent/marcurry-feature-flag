@@ -1,7 +1,7 @@
 import { Flag } from 'lucide-react';
 import { ProductSelector } from '@/components/product-selector';
 import { CreateProductInline } from '@/components/create-product-inline';
-import { listEnvironments, listFeatureFlags, listProducts } from '@/lib/apiHandlers';
+import { listEnvironments, listFeatureFlags, listProducts } from '@/lib/apiHandlers/apiHandlers';
 import { Suspense } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { type EnvironmentRow, EnvironmentsTable } from '@/components/environments-table';

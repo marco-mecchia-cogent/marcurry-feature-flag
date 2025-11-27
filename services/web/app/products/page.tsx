@@ -1,4 +1,4 @@
-import { listProducts, listEnvironments, listFeatureFlags } from '@/lib/apiHandlers';
+import { listProducts, listEnvironments, listFeatureFlags } from '@/lib/apiHandlers/apiHandlers';
 import { ProductsTable, type ProductRow } from '@/components/products-table';
 import { CreateProductInline } from '@/components/create-product-inline';
 
