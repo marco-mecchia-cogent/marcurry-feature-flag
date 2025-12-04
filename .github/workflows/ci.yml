@@ -11,13 +11,13 @@ concurrency:
 
 jobs:
   verify:
-    name: Verify Changes
+    name: PR
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Required for turborepo to detect affected packages
+          fetch-depth: 0 # Required for turborepo to detect affected packages
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4

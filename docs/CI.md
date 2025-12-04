@@ -93,6 +93,7 @@ The workflow uses Turborepo's `--filter='...[origin/main]'` to run checks only o
 ### What "Affected" Means
 
 A package is considered affected if:
+
 - Its source code changed
 - A dependency's code changed
 - Its `package.json` changed
@@ -142,12 +143,14 @@ pnpm exec turbo build --filter=@marcurry/sdk
 To add a new check (e.g., `validate`):
 
 1. **Add to workflow** (`.github/workflows/ci.yml`):
+
 ```yaml
 - name: Validate affected packages
   run: pnpm exec turbo validate --filter='...[origin/main]' --continue
 ```
 
 2. **Add to packages** that need it:
+
 ```json
 {
   "scripts": {
