@@ -2,6 +2,6 @@
 '@marcurry/web': patch
 ---
 
-Fix: Revert UI components to their original form
+Improve UI elements theme consistency
 
-Use global theme instead of hard coding colors inside of the UI components
+Some UI elements were inconsistent with the theming, in this update, we are addressing the issue.
