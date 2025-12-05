@@ -29,7 +29,33 @@ To learn more about Next.js, take a look at the following resources:
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## Deploy on Vercel
+## Deployment
+
+This package supports multiple deployment targets through the `NEXT_OUTPUT_MODE` environment variable:
+
+### Containerized Deployments (Default)
+
+For Docker and containerized deployments, the default `standalone` output mode is used:
+
+```bash
+npm run build
+# or with explicit mode
+NEXT_OUTPUT_MODE=standalone npm run build
+```
+
+This creates a standalone build optimized for containerized environments.
+
+### Serverless Deployments (Vercel/SST/OpenNext)
+
+For Vercel, SST, or OpenNext deployments, use the `export` output mode:
+
+```bash
+NEXT_OUTPUT_MODE=export npm run build
+```
+
+This creates a static export suitable for serverless platforms.
+
+### Deploy on Vercel
 
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
