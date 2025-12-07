@@ -22,8 +22,6 @@ export function validateEnvironment(env: Partial<Environment>): void {
   }
 
   if (env.name.length > MAX_ENVIRONMENT_NAME_LENGTH) {
-    throw new EnvironmentValidationError(
-      `Environment name must be ${MAX_ENVIRONMENT_NAME_LENGTH} characters or less`
-    );
+    throw new EnvironmentValidationError(`Environment name must be ${MAX_ENVIRONMENT_NAME_LENGTH} characters or less`);
   }
 }
