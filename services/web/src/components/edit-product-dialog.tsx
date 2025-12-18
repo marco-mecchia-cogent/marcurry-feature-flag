@@ -15,20 +15,20 @@ import { Input } from '@/ui/input';
 import { Label } from '@/ui/label';
 import { Pencil, Plus, Trash2, X, Key, RefreshCw, Copy, Check } from 'lucide-react';
 import { useToast } from '@/ui/toast';
-import { updateProjectAction } from '@/app/actions/projects';
+import { updateProjectAction } from '@/server/projects';
 import {
   createEnvironmentAction,
   deleteEnvironmentAction,
   updateEnvironmentAction,
   listEnvironmentsAction,
-} from '@/app/actions/environments';
+} from '@/server/environments';
 import {
   createApiKeyAction,
   deleteApiKeyAction,
   listApiKeysAction,
   rotateApiKeyAction,
   updateApiKeyAction,
-} from '@/app/actions/api-keys';
+} from '@/server/api-keys';
 import type { Project, Environment } from '@marcurry/core';
 import type { ApiKeyPublic } from '@/lib/services/api-key-service';
 

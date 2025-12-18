@@ -14,7 +14,7 @@ import {
 import { Input } from '@/ui/input';
 import { Label } from '@/ui/label';
 import { Plus, X, Sparkles } from 'lucide-react';
-import { createProjectAction } from '@/app/actions/projects';
+import { createProjectAction } from '@/server/projects';
 import { useToast } from '@/ui/toast';
 import { PlusCircle, Trash2 } from 'lucide-react';
 import { slugify } from '@/lib/utils';

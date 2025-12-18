@@ -1,7 +1,9 @@
 import { ProductsTable, type ProductRow } from '@/components/products-table';
 import { CreateProjectInline } from '@/components/create-project-inline';
 import { EditProductDialog } from '@/components/edit-product-dialog';
-import { listProjectsAction, listEnvironmentsAction, listFlagsAction } from '@/app/actions';
+import { listProjectsAction } from '@/server/projects';
+import { listEnvironmentsAction } from '@/server/environments';
+import { listFlagsAction } from '@/server/flags';
 import type { Project } from '@marcurry/core';
 
 export const dynamic = 'force-dynamic';
