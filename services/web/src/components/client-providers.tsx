@@ -17,6 +17,13 @@ export function ClientProviders({ children }: { children: ReactNode }) {
       replace={router.replace}
       onSessionChange={() => router.refresh()}
       Link={Link}
+      account
+      changeEmail
+      organization
+      apiKey={{
+        prefix: 'app_',
+        metadata: { environment: 'local' },
+      }}
     >
       {children}
     </AuthUIProvider>

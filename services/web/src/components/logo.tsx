@@ -4,9 +4,10 @@ import { cn } from '@/lib/utils';
 type LogoProps = {
   size?: 'sm' | 'default';
   asLink?: boolean;
+  path?: string;
 };
 
-export function Logo({ size = 'default', asLink = true }: LogoProps) {
+export function Logo({ size = 'default', asLink = true, path = '/' }: LogoProps) {
   const content = (
     <>
       {/* Logo placeholder */}
@@ -24,7 +25,7 @@ export function Logo({ size = 'default', asLink = true }: LogoProps) {
 
   if (asLink) {
     return (
-      <Link href="/" className="flex items-center gap-2">
+      <Link href={path} className="flex items-center gap-2">
         {content}
       </Link>
     );

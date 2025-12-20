@@ -1,5 +1,16 @@
 import { relations } from 'drizzle-orm';
-import { pgTable, uuid, text, boolean, jsonb, timestamp, unique, index, uniqueIndex } from 'drizzle-orm/pg-core';
+import {
+  pgTable,
+  uuid,
+  text,
+  boolean,
+  jsonb,
+  timestamp,
+  unique,
+  index,
+  uniqueIndex,
+  integer,
+} from 'drizzle-orm/pg-core';
 
 export const projects = pgTable('projects', {
   id: uuid('id').primaryKey().defaultRandom(),
@@ -226,11 +237,42 @@ export const invitation = pgTable(
   ]
 );
 
+export const apikey = pgTable(
+  'apikey',
+  {
+    id: text('id').primaryKey(),
+    name: text('name'),
+    start: text('start'),
+    prefix: text('prefix'),
+    key: text('key').notNull(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    refillInterval: integer('refill_interval'),
+    refillAmount: integer('refill_amount'),
+    lastRefillAt: timestamp('last_refill_at'),
+    enabled: boolean('enabled').default(true),
+    rateLimitEnabled: boolean('rate_limit_enabled').default(true),
+    rateLimitTimeWindow: integer('rate_limit_time_window').default(86400000),
+    rateLimitMax: integer('rate_limit_max').default(10),
+    requestCount: integer('request_count').default(0),
+    remaining: integer('remaining'),
+    lastRequest: timestamp('last_request'),
+    expiresAt: timestamp('expires_at'),
+    createdAt: timestamp('created_at').notNull(),
+    updatedAt: timestamp('updated_at').notNull(),
+    permissions: text('permissions'),
+    metadata: text('metadata'),
+  },
+  (table) => [index('apikey_key_idx').on(table.key), index('apikey_userId_idx').on(table.userId)]
+);
+
 export const userRelations = relations(user, ({ many }) => ({
   sessions: many(session),
   accounts: many(account),
   members: many(member),
   invitations: many(invitation),
+  apikeys: many(apikey),
 }));
 
 export const sessionRelations = relations(session, ({ one }) => ({
@@ -274,11 +316,18 @@ export const invitationRelations = relations(invitation, ({ one }) => ({
   }),
 }));
 
+export const apikeyRelations = relations(apikey, ({ one }) => ({
+  user: one(user, {
+    fields: [apikey.userId],
+    references: [user.id],
+  }),
+}));
+
 /**
  * Specific Auth-related schema for Better Auth consumption.
  * While we don't have to specify it and the better-auth drizzle adapter works without it,
  * it's better to be explicit about the schema structure.
  */
-export const authSchema = { user, session, account, verification, organization, member, invitation };
+export const authSchema = { user, session, account, verification, organization, member, invitation, apikey };
 
 /** Better Auth End */
