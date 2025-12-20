@@ -5,6 +5,7 @@ import './globals.css';
 import { ToastProvider } from '@/ui/toast';
 import { Toaster } from '@/ui/sonner';
 import { ThemeProvider } from '@/components/theme-provider';
+import { ClientProviders } from '@/components/client-providers';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -33,7 +34,7 @@ export default function RootLayout({
       >
         <ToastProvider>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-            {children}
+            <ClientProviders>{children}</ClientProviders>
             <Toaster />
           </ThemeProvider>
         </ToastProvider>

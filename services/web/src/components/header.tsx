@@ -2,7 +2,7 @@ import { cn } from '@/lib/utils';
 import { Logo } from '@/components/logo';
 import { NavLinks } from '@/components/nav-links';
 import { ModeToggle } from '@/components/mode-toggle';
-import { LogoutButton } from '@/components/logout-button';
+import { UserButton } from '@daveyplate/better-auth-ui';
 
 export function Header({ className }: { className?: string }) {
   return (
@@ -14,8 +14,7 @@ export function Header({ className }: { className?: string }) {
             <NavLinks />
           </div>
           <div className="flex gap-2">
-            <ModeToggle />
-            <LogoutButton />
+            <UserButton size="icon" additionalLinks={[<ModeToggle key="mode-toggle" />]} />
           </div>
         </div>
       </div>

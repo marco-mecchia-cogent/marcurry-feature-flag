@@ -3,26 +3,42 @@
 import * as React from 'react';
 import { Moon, Sun } from 'lucide-react';
 import { useTheme } from 'next-themes';
+import { capitalizeFirstLetter } from 'better-auth';
 
-import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
 export function ModeToggle() {
-  const { setTheme } = useTheme();
+  const { theme, themes, setTheme } = useTheme();
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="icon">
-          <Sun className="h-[1.2rem] w-[1.2rem] scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
-          <Moon className="absolute h-[1.2rem] w-[1.2rem] scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" />
-          <span className="sr-only">Toggle theme</span>
-        </Button>
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger>
+            <Sun className="dark:hidden" />
+            <Moon className="dark:block" />
+            Toggle theme
+          </DropdownMenuSubTrigger>
+          <DropdownMenuSubContent>
+            <DropdownMenuRadioGroup value={theme} onValueChange={setTheme}>
+              {themes.map((theme) => (
+                <DropdownMenuRadioItem key={theme} value={theme}>
+                  {capitalizeFirstLetter(theme)}
+                </DropdownMenuRadioItem>
+              ))}
+            </DropdownMenuRadioGroup>
+          </DropdownMenuSubContent>
+        </DropdownMenuSub>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
         <DropdownMenuItem onClick={() => setTheme('light')}>Light</DropdownMenuItem>
