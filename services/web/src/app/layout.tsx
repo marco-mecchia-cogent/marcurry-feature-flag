@@ -2,9 +2,10 @@ import type { ReactNode } from 'react';
 import type { Metadata } from 'next';
 import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
-import { Navigation } from '@/components/navigation';
 import { ToastProvider } from '@/ui/toast';
+import { Toaster } from '@/ui/sonner';
 import { ThemeProvider } from '@/components/theme-provider';
+import { ClientProviders } from '@/components/client-providers';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -19,6 +20,14 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: 'Marcurry - Feature Flag Management',
   description: 'Feature Flag Management Solution',
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: '16x16 32x32 48x48' },
+      { url: '/favicon-96x96.png', sizes: '96x96', type: 'image/png' },
+    ],
+    apple: [{ url: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }],
+  },
+  manifest: '/site.webmanifest',
 };
 
 export default function RootLayout({
@@ -33,10 +42,8 @@ export default function RootLayout({
       >
         <ToastProvider>
           <ThemeProvider attribute="class" defaultTheme="system" enableSystem disableTransitionOnChange>
-            <div className="container w-full max-w-7xl">
-              <Navigation />
-              <main className="px-4">{children}</main>
-            </div>
+            <ClientProviders>{children}</ClientProviders>
+            <Toaster />
           </ThemeProvider>
         </ToastProvider>
       </body>
