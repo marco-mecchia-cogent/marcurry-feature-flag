@@ -125,7 +125,7 @@ export function EditProductDialog({ product }: { product: Project }) {
   async function removeEnv(id: string) {
     setSaving(true);
     try {
-      await deleteEnvironmentAction(id, product.id);
+      await deleteEnvironmentAction(id);
       const data = await listEnvironmentsAction(product.id);
       setEnvs(data);
       showToast('Environment removed');

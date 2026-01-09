@@ -62,7 +62,7 @@ export function FlagActions({ flag }: FlagActionsProps) {
   const handleDelete = async () => {
     setIsLoading(true);
     try {
-      await deleteFlagAction(flag.id, flag.projectId);
+      await deleteFlagAction(flag.id);
       toast.success('Flag deleted successfully');
       setDeleteOpen(false);
       router.push(`/app/flags?project=${flag.projectId}`);

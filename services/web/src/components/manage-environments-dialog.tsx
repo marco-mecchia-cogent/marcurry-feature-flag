@@ -111,7 +111,7 @@ export function ManageEnvironmentsDialog({ project, open, onOpenChange }: Manage
 
     setLoading(true);
     try {
-      await deleteEnvironmentAction(id, project.id);
+      await deleteEnvironmentAction(id);
       toast.success('Environment deleted');
       await loadEnvironments();
       router.refresh();
