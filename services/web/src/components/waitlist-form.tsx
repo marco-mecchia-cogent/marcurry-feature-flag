@@ -10,7 +10,7 @@ import { Form, FormField, FormItem, FormMessage } from '@/ui/form';
 import { Loader2Icon } from 'lucide-react';
 
 const waitlistSchema = z.object({
-  email: z.string().email('Please enter a valid email address'),
+  email: z.email('Please enter a valid email address'),
 });
 
 type WaitlistFormData = z.infer<typeof waitlistSchema>;

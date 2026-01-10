@@ -1,6 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/ui/button';
 import {
   Dialog,
@@ -12,7 +14,6 @@ import {
   DialogTrigger,
 } from '@/ui/dialog';
 import { Input } from '@/ui/input';
-import { Label } from '@/ui/label';
 import { Pencil, Plus, Trash2, X } from 'lucide-react';
 import { useToast } from '@/ui/toast';
 import { updateProjectAction } from '@/server/projects';
@@ -24,23 +25,43 @@ import {
 } from '@/server/environments';
 import { slugify } from '@/lib/utils';
 import type { Project, Environment } from '@marcurry/core';
+import { updateProjectSchema, type UpdateProjectInput } from '@/schemas/project-schemas';
+import {
+  createEnvironmentSchema,
+  updateEnvironmentSchema,
+  type CreateEnvironmentInput,
+  type UpdateEnvironmentInput,
+} from '@/schemas/environment-schemas';
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/ui/form';
 
 export function EditProductDialog({ product }: { product: Project }) {
   const [open, setOpen] = useState(false);
-  const [saving, setSaving] = useState(false);
   const [envs, setEnvs] = useState<Environment[] | null>(null);
   const [loadingEnvs, setLoadingEnvs] = useState(false);
   const { showToast } = useToast();
 
-  // State for new environment form with auto-slugify
-  const [newEnvName, setNewEnvName] = useState('');
-  const [newEnvKey, setNewEnvKey] = useState('');
+  const projectForm = useForm<UpdateProjectInput>({
+    resolver: zodResolver(updateProjectSchema),
+    defaultValues: {
+      name: product.name,
+    },
+  });
 
-  const handleNewEnvNameChange = (name: string) => {
-    setNewEnvName(name);
-    // Auto-slugify key from name if key is empty or matches old slugified name
-    if (newEnvKey === '' || newEnvKey === slugify(newEnvName)) {
-      setNewEnvKey(slugify(name));
+  const addEnvForm = useForm<CreateEnvironmentInput>({
+    resolver: zodResolver(createEnvironmentSchema),
+    defaultValues: {
+      name: '',
+      key: '',
+    },
+  });
+
+  const addEnvName = addEnvForm.watch('name');
+  const addEnvKey = addEnvForm.watch('key');
+
+  const handleAddEnvNameChange = (name: string) => {
+    addEnvForm.setValue('name', name);
+    if (addEnvKey === '' || addEnvKey === slugify(addEnvName)) {
+      addEnvForm.setValue('key', slugify(name));
     }
   };
 
@@ -52,8 +73,7 @@ export function EditProductDialog({ product }: { product: Project }) {
       try {
         const data = await listEnvironmentsAction(product.id);
         if (!cancelled) setEnvs(data);
-      } catch (_e) {
-        console.log(_e);
+      } catch {
         showToast('Failed to load environments', 'error');
       } finally {
         if (!cancelled) setLoadingEnvs(false);
@@ -65,72 +85,40 @@ export function EditProductDialog({ product }: { product: Project }) {
     };
   }, [open, product.id, showToast]);
 
-  async function saveProduct(formData: FormData) {
-    setSaving(true);
+  async function onProjectSubmit(data: UpdateProjectInput) {
     try {
-      const id = String(formData.get('id') || '');
-      const name = String(formData.get('name') || '').trim();
-      await updateProjectAction(id, { name });
+      await updateProjectAction(product.id, data);
       showToast('Project updated');
-    } finally {
-      setSaving(false);
+    } catch (error) {
+      showToast('Failed to update project', 'error');
+      console.error(error);
     }
   }
 
-  async function addEnv(e: React.FormEvent) {
-    e.preventDefault();
-    setSaving(true);
+  async function onAddEnv(data: CreateEnvironmentInput) {
     try {
-      const name = newEnvName.trim();
-      const key = newEnvKey.trim();
-      if (name && key) {
-        await createEnvironmentAction({ projectId: product.id, name, key });
-        // refresh envs
-        const data = await listEnvironmentsAction(product.id);
-        setEnvs(data);
-        // Reset form
-        setNewEnvName('');
-        setNewEnvKey('');
-        showToast('Environment added');
-      }
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to add environment';
+      await createEnvironmentAction({ projectId: product.id, ...data });
+      // Refresh envs
+      const updatedEnvs = await listEnvironmentsAction(product.id);
+      setEnvs(updatedEnvs);
+      // Reset form
+      addEnvForm.reset();
+      showToast('Environment added');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to add environment';
       showToast(message, 'error');
-    } finally {
-      setSaving(false);
-    }
-  }
-
-  async function updateEnv(ev: FormData) {
-    setSaving(true);
-    try {
-      const id = String(ev.get('id') || '');
-      const name = String(ev.get('name') || '').trim();
-      const key = String(ev.get('key') || '').trim();
-      const updates: { name?: string; key?: string } = {};
-      if (name) updates.name = name;
-      if (key) updates.key = key;
-      await updateEnvironmentAction(id, product.id, updates);
-      const data = await listEnvironmentsAction(product.id);
-      setEnvs(data);
-      showToast('Environment updated');
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to update environment';
-      showToast(message, 'error');
-    } finally {
-      setSaving(false);
     }
   }
 
   async function removeEnv(id: string) {
-    setSaving(true);
     try {
       await deleteEnvironmentAction(id);
-      const data = await listEnvironmentsAction(product.id);
-      setEnvs(data);
+      const updatedEnvs = await listEnvironmentsAction(product.id);
+      setEnvs(updatedEnvs);
       showToast('Environment removed');
-    } finally {
-      setSaving(false);
+    } catch (error) {
+      showToast('Failed to remove environment', 'error');
+      console.error(error);
     }
   }
 
@@ -147,21 +135,29 @@ export function EditProductDialog({ product }: { product: Project }) {
           <DialogDescription>Update project info and manage environments</DialogDescription>
         </DialogHeader>
 
-        {/* Product info */}
-        <form action={saveProduct} className="space-y-3">
-          <input type="hidden" name="id" value={product.id} />
-          <div className="space-y-2">
-            <Label htmlFor="name">Name</Label>
-            <Input id="name" name="name" defaultValue={product.name} />
-          </div>
-          <div className="flex justify-end">
-            <Button type="submit" disabled={saving}>
-              {saving ? 'Saving...' : 'Save'}
-            </Button>
-          </div>
-        </form>
+        <Form {...projectForm}>
+          <form onSubmit={projectForm.handleSubmit(onProjectSubmit)} className="space-y-3">
+            <FormField
+              control={projectForm.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Name</FormLabel>
+                  <FormControl>
+                    <Input {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <div className="flex justify-end">
+              <Button type="submit" disabled={projectForm.formState.isSubmitting}>
+                {projectForm.formState.isSubmitting ? 'Saving...' : 'Save'}
+              </Button>
+            </div>
+          </form>
+        </Form>
 
-        {/* Environments manager */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <div>
@@ -170,36 +166,49 @@ export function EditProductDialog({ product }: { product: Project }) {
             </div>
           </div>
 
-          {/* Add environment */}
-          <form onSubmit={addEnv} className="grid gap-3 rounded border p-3 md:grid-cols-[1fr_1fr_auto]">
-            <div className="space-y-2">
-              <Label htmlFor="new-env-name">Name</Label>
-              <Input
-                id="new-env-name"
-                placeholder="Production"
-                value={newEnvName}
-                onChange={(e) => handleNewEnvNameChange(e.target.value)}
-                required
+          <Form {...addEnvForm}>
+            <form
+              onSubmit={addEnvForm.handleSubmit(onAddEnv)}
+              className="grid gap-3 rounded border p-3 md:grid-cols-[1fr_1fr_auto]"
+            >
+              <FormField
+                control={addEnvForm.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Name</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        onChange={(e) => handleAddEnvNameChange(e.target.value)}
+                        placeholder="Production"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="new-env-key">Key</Label>
-              <Input
-                id="new-env-key"
-                placeholder="production"
-                value={newEnvKey}
-                onChange={(e) => setNewEnvKey(e.target.value)}
-                required
+              <FormField
+                control={addEnvForm.control}
+                name="key"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Key</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="production" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
-            <div className="flex items-end">
-              <Button type="submit" disabled={saving || !newEnvName.trim() || !newEnvKey.trim()}>
-                <Plus className="mr-2 h-4 w-4" /> Add
-              </Button>
-            </div>
-          </form>
+              <div className="flex items-end">
+                <Button type="submit" disabled={addEnvForm.formState.isSubmitting}>
+                  <Plus className="mr-2 h-4 w-4" /> Add
+                </Button>
+              </div>
+            </form>
+          </Form>
 
-          {/* Existing envs */}
           <div className="space-y-2">
             {loadingEnvs && <div className="text-muted-foreground text-sm">Loading environments…</div>}
             {!loadingEnvs && (envs?.length ?? 0) === 0 && (
@@ -208,35 +217,14 @@ export function EditProductDialog({ product }: { product: Project }) {
             {envs?.map((e) => {
               const isLastEnv = (envs?.length ?? 0) <= 1;
               return (
-                <form
+                <EnvRow
                   key={e.id}
-                  action={updateEnv}
-                  className="grid gap-3 rounded border p-3 md:grid-cols-[1fr_1fr_auto]"
-                >
-                  <input type="hidden" name="id" value={e.id} />
-                  <div className="space-y-2">
-                    <Label>Name</Label>
-                    <Input name="name" defaultValue={e.name} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Key</Label>
-                    <Input name="key" defaultValue={e.key} />
-                  </div>
-                  <div className="flex items-end gap-2">
-                    <Button type="submit" variant="outline" disabled={saving}>
-                      Save
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="destructive"
-                      disabled={saving || isLastEnv}
-                      onClick={() => removeEnv(e.id)}
-                      title={isLastEnv ? 'Cannot delete the last environment' : 'Delete environment'}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </form>
+                  env={e}
+                  productId={product.id}
+                  isLastEnv={isLastEnv}
+                  onUpdate={(updatedEnvs) => setEnvs(updatedEnvs)}
+                  onRemove={() => removeEnv(e.id)}
+                />
               );
             })}
           </div>
@@ -249,5 +237,91 @@ export function EditProductDialog({ product }: { product: Project }) {
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function EnvRow({
+  env,
+  productId,
+  isLastEnv,
+  onUpdate,
+  onRemove,
+}: {
+  env: Environment;
+  productId: string;
+  isLastEnv: boolean;
+  onUpdate: (envs: Environment[]) => void;
+  onRemove: () => void;
+}) {
+  const { showToast } = useToast();
+
+  const form = useForm<UpdateEnvironmentInput>({
+    resolver: zodResolver(updateEnvironmentSchema),
+    defaultValues: {
+      name: env.name,
+      key: env.key,
+    },
+  });
+
+  async function onSubmit(data: UpdateEnvironmentInput) {
+    try {
+      await updateEnvironmentAction(env.id, productId, data);
+      const updatedEnvs = await listEnvironmentsAction(productId);
+      onUpdate(updatedEnvs);
+      showToast('Environment updated');
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to update environment';
+      showToast(message, 'error');
+    }
+  }
+
+  return (
+    <Form {...form}>
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="grid gap-3 rounded border p-3 md:grid-cols-[1fr_1fr_auto]"
+      >
+        <FormField
+          control={form.control}
+          name="name"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Name</FormLabel>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name="key"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Key</FormLabel>
+              <FormControl>
+                <Input {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <div className="flex items-end gap-2">
+          <Button type="submit" variant="outline" disabled={form.formState.isSubmitting}>
+            Save
+          </Button>
+          <Button
+            type="button"
+            variant="destructive"
+            disabled={isLastEnv}
+            onClick={onRemove}
+            title={isLastEnv ? 'Cannot delete the last environment' : 'Delete environment'}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      </form>
+    </Form>
   );
 }

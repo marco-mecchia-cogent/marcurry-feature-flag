@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { Plus, Trash2, Pencil, X, Check } from 'lucide-react';
@@ -8,7 +10,6 @@ import type { Project, Environment } from '@marcurry/core';
 import { Button } from '@/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/ui/dialog';
 import { Input } from '@/ui/input';
-import { Label } from '@/ui/label';
 import {
   listEnvironmentsAction,
   createEnvironmentAction,
@@ -16,6 +17,13 @@ import {
   deleteEnvironmentAction,
 } from '@/server/environments';
 import { slugify } from '@/lib/utils';
+import {
+  createEnvironmentSchema,
+  updateEnvironmentSchema,
+  type CreateEnvironmentInput,
+  type UpdateEnvironmentInput,
+} from '@/schemas/environment-schemas';
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from '@/ui/form';
 
 interface ManageEnvironmentsDialogProps {
   project: Project;
@@ -28,12 +36,6 @@ export function ManageEnvironmentsDialog({ project, open, onOpenChange }: Manage
   const [environments, setEnvironments] = useState<Environment[]>([]);
   const [loading, setLoading] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editName, setEditName] = useState('');
-  const [editKey, setEditKey] = useState('');
-  const [editKeyManuallyEdited, setEditKeyManuallyEdited] = useState(false);
-  const [newEnvName, setNewEnvName] = useState('');
-  const [newEnvKey, setNewEnvKey] = useState('');
-  const [newKeyManuallyEdited, setNewKeyManuallyEdited] = useState(false);
   const [isAdding, setIsAdding] = useState(false);
 
   const loadEnvironments = useCallback(async () => {
@@ -52,23 +54,33 @@ export function ManageEnvironmentsDialog({ project, open, onOpenChange }: Manage
     }
   }, [open, loadEnvironments]);
 
-  const handleAdd = async () => {
-    if (!newEnvName.trim() || !newEnvKey.trim()) {
-      toast.error('Name and key are required');
-      return;
-    }
+  const addForm = useForm<CreateEnvironmentInput>({
+    resolver: zodResolver(createEnvironmentSchema),
+    defaultValues: {
+      name: '',
+      key: '',
+    },
+  });
 
+  const addName = addForm.watch('name');
+  const addKey = addForm.watch('key');
+
+  const handleAddNameChange = (name: string) => {
+    addForm.setValue('name', name);
+    if (addKey === '' || addKey === slugify(addName)) {
+      addForm.setValue('key', slugify(name));
+    }
+  };
+
+  async function onAdd(data: CreateEnvironmentInput) {
     setLoading(true);
     try {
       await createEnvironmentAction({
         projectId: project.id,
-        name: newEnvName.trim(),
-        key: newEnvKey.trim(),
+        ...data,
       });
       toast.success('Environment created');
-      setNewEnvName('');
-      setNewEnvKey('');
-      setNewKeyManuallyEdited(false);
+      addForm.reset();
       setIsAdding(false);
       await loadEnvironments();
       router.refresh();
@@ -78,33 +90,9 @@ export function ManageEnvironmentsDialog({ project, open, onOpenChange }: Manage
     } finally {
       setLoading(false);
     }
-  };
+  }
 
-  const handleEdit = async (id: string) => {
-    if (!editName.trim() || !editKey.trim()) {
-      toast.error('Name and key are required');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      await updateEnvironmentAction(id, project.id, {
-        name: editName.trim(),
-        key: editKey.trim(),
-      });
-      toast.success('Environment updated');
-      setEditingId(null);
-      await loadEnvironments();
-      router.refresh();
-    } catch (error) {
-      toast.error('Failed to update environment');
-      console.error(error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleDelete = async (id: string, name: string) => {
+  async function handleDelete(id: string, name: string) {
     if (!confirm(`Are you sure you want to delete the "${name}" environment? This action cannot be undone.`)) {
       return;
     }
@@ -121,21 +109,7 @@ export function ManageEnvironmentsDialog({ project, open, onOpenChange }: Manage
     } finally {
       setLoading(false);
     }
-  };
-
-  const startEdit = (env: Environment) => {
-    setEditingId(env.id);
-    setEditName(env.name);
-    setEditKey(env.key);
-    setEditKeyManuallyEdited(false);
-  };
-
-  const cancelEdit = () => {
-    setEditingId(null);
-    setEditName('');
-    setEditKey('');
-    setEditKeyManuallyEdited(false);
-  };
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -153,116 +127,81 @@ export function ManageEnvironmentsDialog({ project, open, onOpenChange }: Manage
           ) : (
             <div className="space-y-2">
               {environments.map((env) => (
-                <div key={env.id} className="flex items-center gap-2 rounded-lg border p-3">
-                  {editingId === env.id ? (
-                    <>
-                      <div className="flex-1 space-y-2">
-                        <Input
-                          value={editName}
-                          onChange={(e) => {
-                            const newName = e.target.value;
-                            setEditName(newName);
-                            // Auto-slugify key if not manually edited
-                            if (!editKeyManuallyEdited) {
-                              setEditKey(slugify(newName));
-                            }
-                          }}
-                          placeholder="Environment name"
-                          disabled={loading}
-                        />
-                        <Input
-                          value={editKey}
-                          onChange={(e) => {
-                            setEditKey(e.target.value);
-                            setEditKeyManuallyEdited(true);
-                          }}
-                          placeholder="environment-key"
-                          disabled={loading}
-                        />
-                      </div>
-                      <Button size="icon" variant="ghost" onClick={() => handleEdit(env.id)} disabled={loading}>
-                        <Check className="h-4 w-4" />
-                      </Button>
-                      <Button size="icon" variant="ghost" onClick={cancelEdit} disabled={loading}>
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </>
-                  ) : (
-                    <>
-                      <div className="flex-1">
-                        <div className="font-medium">{env.name}</div>
-                        <div className="text-muted-foreground text-sm">
-                          <code className="bg-muted rounded px-1 py-0.5">{env.key}</code>
-                        </div>
-                      </div>
-                      <Button size="icon" variant="ghost" onClick={() => startEdit(env)} disabled={loading}>
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        onClick={() => handleDelete(env.id, env.name)}
-                        disabled={loading}
-                      >
-                        <Trash2 className="text-destructive h-4 w-4" />
-                      </Button>
-                    </>
-                  )}
-                </div>
+                <EnvRow
+                  key={env.id}
+                  env={env}
+                  projectId={project.id}
+                  loading={loading}
+                  editingId={editingId}
+                  onStartEdit={(id) => setEditingId(id)}
+                  onCancelEdit={() => setEditingId(null)}
+                  onUpdate={async () => {
+                    await loadEnvironments();
+                    setEditingId(null);
+                    router.refresh();
+                  }}
+                  onDelete={handleDelete}
+                />
               ))}
             </div>
           )}
 
           {isAdding ? (
             <div className="space-y-3 rounded-lg border p-4">
-              <div className="space-y-2">
-                <Label>Environment Name</Label>
-                <Input
-                  value={newEnvName}
-                  onChange={(e) => {
-                    const newName = e.target.value;
-                    setNewEnvName(newName);
-                    // Auto-slugify key if not manually edited
-                    if (!newKeyManuallyEdited) {
-                      setNewEnvKey(slugify(newName));
-                    }
-                  }}
-                  placeholder="Production"
-                  disabled={loading}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Environment Key</Label>
-                <Input
-                  value={newEnvKey}
-                  onChange={(e) => {
-                    setNewEnvKey(e.target.value);
-                    setNewKeyManuallyEdited(true);
-                  }}
-                  placeholder="production"
-                  disabled={loading}
-                />
-              </div>
-              <div className="flex gap-2">
-                <Button onClick={handleAdd} disabled={loading} size="sm">
-                  <Check className="mr-1 h-4 w-4" />
-                  Add
-                </Button>
-                <Button
-                  onClick={() => {
-                    setIsAdding(false);
-                    setNewEnvName('');
-                    setNewEnvKey('');
-                    setNewKeyManuallyEdited(false);
-                  }}
-                  variant="ghost"
-                  disabled={loading}
-                  size="sm"
-                >
-                  <X className="mr-1 h-4 w-4" />
-                  Cancel
-                </Button>
-              </div>
+              <Form {...addForm}>
+                <form onSubmit={addForm.handleSubmit(onAdd)} className="space-y-3">
+                  <FormField
+                    control={addForm.control}
+                    name="name"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Environment Name</FormLabel>
+                        <FormControl>
+                          <Input
+                            {...field}
+                            onChange={(e) => handleAddNameChange(e.target.value)}
+                            placeholder="Production"
+                            disabled={loading}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={addForm.control}
+                    name="key"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Environment Key</FormLabel>
+                        <FormControl>
+                          <Input {...field} placeholder="production" disabled={loading} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="flex gap-2">
+                    <Button type="submit" disabled={loading} size="sm">
+                      <Check className="mr-1 h-4 w-4" />
+                      Add
+                    </Button>
+                    <Button
+                      type="button"
+                      onClick={() => {
+                        setIsAdding(false);
+                        addForm.reset();
+                      }}
+                      variant="ghost"
+                      disabled={loading}
+                      size="sm"
+                    >
+                      <X className="mr-1 h-4 w-4" />
+                      Cancel
+                    </Button>
+                  </div>
+                </form>
+              </Form>
             </div>
           ) : (
             <Button onClick={() => setIsAdding(true)} variant="outline" className="w-full" disabled={loading}>
@@ -279,5 +218,110 @@ export function ManageEnvironmentsDialog({ project, open, onOpenChange }: Manage
         </DialogFooter>
       </DialogContent>
     </Dialog>
+  );
+}
+
+function EnvRow({
+  env,
+  projectId,
+  loading,
+  editingId,
+  onStartEdit,
+  onCancelEdit,
+  onUpdate,
+  onDelete,
+}: {
+  env: Environment;
+  projectId: string;
+  loading: boolean;
+  editingId: string | null;
+  onStartEdit: (id: string) => void;
+  onCancelEdit: () => void;
+  onUpdate: () => Promise<void>;
+  onDelete: (id: string, name: string) => void;
+}) {
+  const isEditing = editingId === env.id;
+
+  const form = useForm<UpdateEnvironmentInput>({
+    resolver: zodResolver(updateEnvironmentSchema),
+    defaultValues: {
+      name: env.name,
+      key: env.key,
+    },
+  });
+
+  async function onSubmit(data: UpdateEnvironmentInput) {
+    try {
+      await updateEnvironmentAction(env.id, projectId, data);
+      toast.success('Environment updated');
+      await onUpdate();
+    } catch (error) {
+      toast.error('Failed to update environment');
+      console.error(error);
+    }
+  }
+
+  return (
+    <div className="flex items-center gap-2 rounded-lg border p-3">
+      {isEditing ? (
+        <>
+          <div className="flex-1">
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-2">
+                <FormField
+                  control={form.control}
+                  name="name"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input {...field} placeholder="Environment name" disabled={loading} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="key"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormControl>
+                        <Input {...field} placeholder="environment-key" disabled={loading} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <div className="flex gap-2">
+                  <Button type="submit" size="sm" variant="outline" disabled={loading}>
+                    <Check className="mr-1 h-4 w-4" />
+                    Save
+                  </Button>
+                  <Button type="button" size="sm" variant="ghost" onClick={onCancelEdit} disabled={loading}>
+                    <X className="mr-1 h-4 w-4" />
+                    Cancel
+                  </Button>
+                </div>
+              </form>
+            </Form>
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="flex-1">
+            <div className="font-medium">{env.name}</div>
+            <div className="text-muted-foreground text-sm">
+              <code className="bg-muted rounded px-1 py-0.5">{env.key}</code>
+            </div>
+          </div>
+          <Button size="icon" variant="ghost" onClick={() => onStartEdit(env.id)} disabled={loading}>
+            <Pencil className="h-4 w-4" />
+          </Button>
+          <Button size="icon" variant="ghost" onClick={() => onDelete(env.id, env.name)} disabled={loading}>
+            <Trash2 className="text-destructive h-4 w-4" />
+          </Button>
+        </>
+      )}
+    </div>
   );
 }

@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { useForm, useFieldArray } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Button } from '@/ui/button';
 import {
   Dialog,
@@ -12,12 +14,12 @@ import {
   DialogTrigger,
 } from '@/ui/dialog';
 import { Input } from '@/ui/input';
-import { Label } from '@/ui/label';
-import { Plus, X, Sparkles } from 'lucide-react';
+import { Plus, X, Sparkles, PlusCircle, Trash2 } from 'lucide-react';
 import { createProjectAction } from '@/server/projects';
 import { useToast } from '@/ui/toast';
-import { PlusCircle, Trash2 } from 'lucide-react';
 import { slugify } from '@/lib/utils';
+import { createProjectSchema, type CreateProjectInput } from '@/schemas/project-schemas';
+import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage, FormDescription } from '@/ui/form';
 
 interface CreateProjectInlineProps {
   trigger?: React.ReactNode;
@@ -28,106 +30,65 @@ interface CreateProjectInlineProps {
 export function CreateProjectInline({ trigger, open: controlledOpen, onOpenChange }: CreateProjectInlineProps = {}) {
   const [internalOpen, setInternalOpen] = useState(false);
 
-  // Use controlled state if provided, otherwise use internal state
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
   const setOpen = onOpenChange || setInternalOpen;
-  const [submitting, setSubmitting] = useState(false);
-  const [projectName, setProjectName] = useState('');
-  const [projectKey, setProjectKey] = useState('');
   const { showToast } = useToast();
-  const [envRows, setEnvRows] = useState<Array<{ id: string; name: string; key: string }>>([
-    { id: crypto.randomUUID(), name: '', key: '' },
-  ]);
+
+  const form = useForm<CreateProjectInput>({
+    resolver: zodResolver(createProjectSchema),
+    defaultValues: {
+      name: '',
+      key: '',
+      environments: [{ name: '', key: '' }],
+    },
+  });
+
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: 'environments',
+  });
+
+  const projectName = form.watch('name');
+  const projectKey = form.watch('key');
 
   const handleProjectNameChange = (value: string) => {
-    setProjectName(value);
+    form.setValue('name', value);
     if (projectKey === '' || projectKey === slugify(projectName)) {
-      setProjectKey(slugify(value));
+      form.setValue('key', slugify(value));
     }
   };
 
-  const trimmedEnvs = envRows.map((r) => ({ name: r.name.trim(), key: r.key.trim() })).filter((e) => e.name.length > 0);
-  const hasAtLeastOneEnv = trimmedEnvs.length > 0;
-  const lowerNames = trimmedEnvs.map((e) => e.name.toLowerCase());
-  const lowerKeys = trimmedEnvs.map((e) => e.key.toLowerCase());
-  const hasDuplicateNames = new Set(lowerNames).size !== lowerNames.length;
-  const hasDuplicateKeys = new Set(lowerKeys).size !== lowerKeys.length;
-  const hasEmptyKeys = trimmedEnvs.some((e) => e.key.length === 0);
-  const hasProjectKey = projectKey.trim().length > 0;
-  const canSubmit =
-    hasAtLeastOneEnv && !hasDuplicateNames && !hasDuplicateKeys && !hasEmptyKeys && hasProjectKey && !submitting;
+  const handleEnvironmentNameChange = (index: number, value: string) => {
+    const currentEnvName = form.getValues(`environments.${index}.name`);
+    const currentEnvKey = form.getValues(`environments.${index}.key`);
+    form.setValue(`environments.${index}.name`, value);
+    if (currentEnvKey === '' || currentEnvKey === slugify(currentEnvName)) {
+      form.setValue(`environments.${index}.key`, slugify(value));
+    }
+  };
 
-  function addEnvRow() {
-    setEnvRows((rows) => [...rows, { id: crypto.randomUUID(), name: '', key: '' }]);
-  }
-
-  function updateEnvRow(id: string, patch: Partial<{ name: string; key: string }>) {
-    setEnvRows((rows) =>
-      rows.map((r) => {
-        if (r.id !== id) return r;
-        const updated = { ...r, ...patch };
-        // Auto-slugify key from name if name changed and key is empty or matches old slugified name
-        if (patch.name !== undefined && (updated.key === '' || updated.key === slugify(r.name))) {
-          updated.key = slugify(patch.name);
-        }
-        return updated;
-      })
-    );
-  }
-
-  function removeEnvRow(id: string) {
-    setEnvRows((rows) => rows.filter((r) => r.id !== id));
-  }
-
-  // Client-side submit handler that calls existing server actions
-  async function handleCreate(formData: FormData) {
-    setSubmitting(true);
+  async function onSubmit(data: CreateProjectInput) {
     try {
-      const name = projectName.trim();
-      if (!name) {
-        showToast('Name is required', 'error');
-        return;
-      }
-
-      const key = projectKey.trim();
-      if (!key) {
-        showToast('Project key is required', 'error');
-        return;
-      }
-
-      const envs = envRows.map((r) => ({ name: r.name.trim(), key: r.key.trim() })).filter((r) => r.name.length > 0);
-      if (envs.length === 0) {
-        showToast('At least one environment is required', 'error');
-        return;
-      }
-      const lowerNames = envs.map((e) => e.name.toLowerCase());
-      if (new Set(lowerNames).size !== lowerNames.length) {
-        showToast('Environment names must be unique', 'error');
-        return;
-      }
-      const lowerKeys = envs.map((e) => e.key.toLowerCase());
-      if (new Set(lowerKeys).size !== lowerKeys.length) {
-        showToast('Environment keys must be unique', 'error');
-        return;
-      }
-      if (envs.some((e) => !e.key)) {
-        showToast('All environments must have a key', 'error');
-        return;
-      }
-
-      await createProjectAction({ name, key, environments: envs });
+      await createProjectAction(data);
       setOpen(false);
       showToast('Project created successfully');
-      setProjectName('');
-      setProjectKey('');
-      setEnvRows([{ id: crypto.randomUUID(), name: '', key: '' }]);
-    } finally {
-      setSubmitting(false);
+      form.reset();
+    } catch (error) {
+      showToast('Failed to create project', 'error');
+      console.error(error);
     }
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        setOpen(isOpen);
+        if (!isOpen) {
+          form.reset();
+        }
+      }}
+    >
       {(trigger || controlledOpen === undefined) && (
         <DialogTrigger asChild>
           {trigger || (
@@ -139,123 +100,114 @@ export function CreateProjectInline({ trigger, open: controlledOpen, onOpenChang
         </DialogTrigger>
       )}
       <DialogContent className="max-w-2xl">
-        <form action={handleCreate} className="space-y-4">
-          <DialogHeader>
-            <DialogTitle>Create Project</DialogTitle>
-            <DialogDescription>Add a new project and define at least one environment</DialogDescription>
-          </DialogHeader>
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <DialogHeader>
+              <DialogTitle>Create Project</DialogTitle>
+              <DialogDescription>Add a new project and define at least one environment</DialogDescription>
+            </DialogHeader>
 
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="name">Name</Label>
-              <Input
-                id="name"
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
                 name="name"
-                placeholder="My Project"
-                value={projectName}
-                onChange={(e) => handleProjectNameChange(e.target.value)}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="key">Project Key</Label>
-              <Input
-                id="key"
-                name="key"
-                placeholder="my-project"
-                value={projectKey}
-                onChange={(e) => setProjectKey(e.target.value)}
-                required
-              />
-              <p className="text-muted-foreground text-xs">Used in the SDK</p>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <div className="flex items-center justify-between">
-              <Label>Environments</Label>
-              <Button type="button" size="sm" variant="outline" onClick={addEnvRow}>
-                <PlusCircle className="mr-1 h-4 w-4" /> Add Environment
-              </Button>
-            </div>
-            <div className="space-y-2">
-              <input
-                type="hidden"
-                name="environments"
-                value={JSON.stringify(
-                  envRows.map((r) => ({ name: r.name.trim(), key: r.key.trim() })).filter((r) => r.name.length > 0)
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Name</FormLabel>
+                    <FormControl>
+                      <Input
+                        {...field}
+                        onChange={(e) => handleProjectNameChange(e.target.value)}
+                        placeholder="My Project"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
                 )}
               />
-              {envRows.map((row) => {
-                const isDuplicateName =
-                  row.name.trim().length > 0 &&
-                  lowerNames.filter((n) => n === row.name.trim().toLowerCase()).length > 1;
-                const isDuplicateKey =
-                  row.key.trim().length > 0 && lowerKeys.filter((k) => k === row.key.trim().toLowerCase()).length > 1;
-                const hasError = isDuplicateName || isDuplicateKey;
-                return (
-                  <div
-                    key={row.id}
-                    className={`grid gap-3 rounded border p-3 md:grid-cols-[1fr_1fr_auto] ${
-                      hasError ? 'border-destructive' : ''
-                    }`}
-                  >
-                    <div className="flex-1 space-y-1">
-                      <Label>Name</Label>
-                      <Input
-                        placeholder="Production"
-                        value={row.name}
-                        onChange={(e) => updateEnvRow(row.id, { name: e.target.value })}
-                        required={false}
-                      />
-                      <div className="min-h-[18px]">
-                        {isDuplicateName ? (
-                          <div className="text-destructive text-xs">Duplicate environment name.</div>
-                        ) : null}
-                      </div>
-                    </div>
-                    <div className="flex-1 space-y-1">
-                      <Label>Key</Label>
-                      <Input
-                        placeholder="production"
-                        value={row.key}
-                        onChange={(e) => updateEnvRow(row.id, { key: e.target.value })}
-                        required={false}
-                      />
-                      <div className="min-h-[18px]">
-                        {isDuplicateKey ? (
-                          <div className="text-destructive text-xs">Duplicate environment key.</div>
-                        ) : null}
-                      </div>
-                    </div>
+              <FormField
+                control={form.control}
+                name="key"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Project Key</FormLabel>
+                    <FormControl>
+                      <Input {...field} placeholder="my-project" />
+                    </FormControl>
+                    <FormDescription>Used in the SDK</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <FormLabel>Environments</FormLabel>
+                <Button type="button" size="sm" variant="outline" onClick={() => append({ name: '', key: '' })}>
+                  <PlusCircle className="mr-1 h-4 w-4" /> Add Environment
+                </Button>
+              </div>
+              <div className="space-y-2">
+                {fields.map((field, index) => (
+                  <div key={field.id} className="grid gap-3 rounded border p-3 md:grid-cols-[1fr_1fr_auto]">
+                    <FormField
+                      control={form.control}
+                      name={`environments.${index}.name`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Name</FormLabel>
+                          <FormControl>
+                            <Input
+                              {...field}
+                              onChange={(e) => handleEnvironmentNameChange(index, e.target.value)}
+                              placeholder="Production"
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name={`environments.${index}.key`}
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Key</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="production" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
                     <div className="self-start md:mt-6">
-                      <Button type="button" className="h-10" variant="destructive" onClick={() => removeEnvRow(row.id)}>
+                      <Button type="button" className="h-10" variant="destructive" onClick={() => remove(index)}>
                         <Trash2 className="mr-1 h-4 w-4" /> Remove
                       </Button>
                     </div>
                   </div>
-                );
-              })}
-              {!hasAtLeastOneEnv && (
-                <div className="text-destructive text-sm">At least one environment is required.</div>
-              )}
-              {hasDuplicateNames && <div className="text-destructive text-sm">Environment names must be unique.</div>}
-              {hasDuplicateKeys && <div className="text-destructive text-sm">Environment keys must be unique.</div>}
-              {hasEmptyKeys && <div className="text-destructive text-sm">All environments must have a key.</div>}
+                ))}
+              </div>
             </div>
-          </div>
 
-          <DialogFooter>
-            <Button type="button" variant="ghost" onClick={() => setOpen(false)} disabled={submitting}>
-              <X className="mr-1 h-4 w-4" />
-              Cancel
-            </Button>
-            <Button type="submit" disabled={!canSubmit}>
-              <Sparkles className="mr-1 h-4 w-4" />
-              {submitting ? 'Creating...' : 'Create'}
-            </Button>
-          </DialogFooter>
-        </form>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="ghost"
+                onClick={() => setOpen(false)}
+                disabled={form.formState.isSubmitting}
+              >
+                <X className="mr-1 h-4 w-4" />
+                Cancel
+              </Button>
+              <Button type="submit" disabled={form.formState.isSubmitting}>
+                <Sparkles className="mr-1 h-4 w-4" />
+                {form.formState.isSubmitting ? 'Creating...' : 'Create'}
+              </Button>
+            </DialogFooter>
+          </form>
+        </Form>
       </DialogContent>
     </Dialog>
   );
